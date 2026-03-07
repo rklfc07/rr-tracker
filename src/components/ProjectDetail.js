@@ -51,8 +51,13 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
   const saveTask = async () => {
     if (!taskForm.title.trim()) return;
     setSaving(true);
-    if (taskModal.mode === "add") await supabase.from("tasks").insert([{ ...taskForm, project_id: project.id }]);
-    else await supabase.from("tasks").update({ ...taskForm }).eq("id", taskModal.taskId);
+    if (taskModal.mode === "add") {
+      const { error } = await supabase.from("tasks").insert([{ ...taskForm, project_id: project.id }]);
+      if (error) { alert("Error adding task: " + error.message); setSaving(false); return; }
+    } else {
+      const { error } = await supabase.from("tasks").update({ ...taskForm }).eq("id", taskModal.taskId);
+      if (error) { alert("Error updating task: " + error.message); setSaving(false); return; }
+    }
     setSaving(false); setTaskModal(null); onRefresh();
   };
   const deleteTask = async (id) => { await supabase.from("tasks").delete().eq("id", id); onRefresh(); };
