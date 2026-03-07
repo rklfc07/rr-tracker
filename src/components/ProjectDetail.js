@@ -95,8 +95,8 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
         <div className="header-brand">
           <button className="back-btn" onClick={onBack}>←</button>
           <div style={{ width: 3, height: 26, background: color, borderRadius: 2 }} />
-          <div>
-            <div className="header-title">{project.name}</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="header-title" style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"calc(100vw - 220px)" }}>{project.name}</div>
             <div className="header-sub">{project.category}{project.client_name ? ` · ${project.client_name}` : ""}</div>
           </div>
         </div>
@@ -108,17 +108,17 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
                   <button key={u} className={`user-tab ${filterUser === u ? "active" : ""}`} onClick={() => setFilterUser(u)}>{u}</button>
                 ))}
               </div>
-              <button className="btn-primary" onClick={() => openAddTask("Todo")}>+ Add Task</button>
+              <button className="btn-primary" onClick={() => openAddTask("Todo")}>+ Task</button>
             </>
           )}
-          {activeTab === "payments" && <button className="btn-primary" onClick={openAddPay}>+ Log Payment</button>}
-          {activeTab === "notes" && <button className="btn-primary" onClick={() => setNoteModal(true)}>+ Add Note</button>}
+          {activeTab === "payments" && <button className="btn-primary" onClick={openAddPay}>+ Payment</button>}
+          {activeTab === "notes" && <button className="btn-primary" onClick={() => setNoteModal(true)}>+ Note</button>}
         </div>
       </div>
 
       <div className="page">
         {/* TABS */}
-        <div style={{ display: "flex", gap: 0, marginBottom: 24, borderBottom: "1px solid var(--border)" }}>
+        <div className="proj-tabs" style={{ display: "flex", gap: 0, marginBottom: 24, borderBottom: "1px solid var(--border)", overflowX: "auto" }}>
           {[
             { id: "tasks",    label: "Tasks",    count: (project.tasks||[]).length },
             { id: "payments", label: "Payments", count: payments.length },
@@ -209,31 +209,37 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
                 return (
                   <div key={p.id} onClick={() => openEditPay(p)} style={{
                     background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12,
-                    padding: "16px 20px", cursor: "pointer", transition: "border-color 0.15s",
-                    display: "grid", gridTemplateColumns: "130px 1fr 1fr 1fr 90px 36px",
-                    alignItems: "center", gap: 16,
+                    padding: "14px 16px", cursor: "pointer", transition: "border-color 0.15s",
                   }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = "var(--border2)"}
                   onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
                   >
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.2px" }}>{p.month}</div>
-                      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{p.year}</div>
+                    {/* Top row: month/year + status + delete */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.2px" }}>{p.month} {p.year}</div>
+                        {p.notes && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{p.notes}</div>}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 6, background: st.bg, color: st.color }}>{st.label}</span>
+                        <button className="btn-danger" onClick={e => { e.stopPropagation(); deletePay(p.id); }} style={{ padding: "4px 8px", fontSize: 12 }}>✕</button>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 4 }}>Billed</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "var(--blue)" }}>{fmt(due)}</div>
+                    {/* Bottom row: amounts */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6 }}>
+                      <div style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 10px" }}>
+                        <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 3 }}>Billed</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--blue)" }}>{fmt(due)}</div>
+                      </div>
+                      <div style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 10px" }}>
+                        <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 3 }}>Received</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--green)" }}>{fmt(rec)}</div>
+                      </div>
+                      <div style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 10px" }}>
+                        <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 3 }}>Balance</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: bal > 0 ? "var(--red)" : "var(--green)" }}>{fmt(Math.abs(bal))}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 4 }}>Received</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "var(--green)" }}>{fmt(rec)}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 4 }}>Balance</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: bal > 0 ? "var(--red)" : "var(--green)" }}>{fmt(Math.abs(bal))}</div>
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 6, background: st.bg, color: st.color, textAlign: "center" }}>{st.label}</span>
-                    <button className="btn-danger" onClick={e => { e.stopPropagation(); deletePay(p.id); }} style={{ padding: "4px 8px", fontSize: 12 }}>✕</button>
                   </div>
                 );
               })}

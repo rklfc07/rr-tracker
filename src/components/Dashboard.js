@@ -122,8 +122,8 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
         <button className="btn-primary" onClick={openAdd}>+ New Project</button>
       </div>
 
-      {/* Category rows */}
-      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:14, overflow:"hidden" }}>
+      {/* Category rows — desktop table */}
+      <div className="table-desktop" style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:14, overflow:"hidden" }}>
         <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
             <tr>
@@ -142,7 +142,6 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
               const received = catProjects.reduce((s,p)=>(p.payments||[]).reduce((a,x)=>a+(Number(x.amount_received)||0),s),0);
               const pending  = billed - received;
               const cfg = CAT_COLORS[cat] || { color:"#8a8a72" };
-
               return (
                 <tr key={cat}
                   onClick={() => { setActiveCategory(cat); setView("projects"); setSearchText(""); }}
@@ -185,6 +184,57 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
           </tfoot>
         </table>
       </div>
+
+      {/* Category rows — mobile cards */}
+      <div className="mobile-cards">
+        {CATEGORIES.map((cat, i) => {
+          const catProjects = projects.filter(p => p.category === cat);
+          const billed   = catProjects.reduce((s,p)=>(p.payments||[]).reduce((a,x)=>a+(Number(x.amount_due)||0),s),0);
+          const received = catProjects.reduce((s,p)=>(p.payments||[]).reduce((a,x)=>a+(Number(x.amount_received)||0),s),0);
+          const pending  = billed - received;
+          const cfg = CAT_COLORS[cat] || { color:"#8a8a72" };
+          return (
+            <div key={cat}
+              onClick={() => { setActiveCategory(cat); setView("projects"); setSearchText(""); }}
+              style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12, padding:"14px 16px", cursor:"pointer", position:"relative", overflow:"hidden" }}
+            >
+              <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:cfg.color, borderRadius:"3px 0 0 3px" }} />
+              <div style={{ paddingLeft:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+                  <div>
+                    <div style={{ fontSize:14, fontWeight:700, color:"var(--text)", letterSpacing:"-0.2px" }}>{cat}</div>
+                    <div style={{ fontSize:11, color:"var(--muted)", marginTop:2 }}>{catProjects.length} project{catProjects.length!==1?"s":""}</div>
+                  </div>
+                  <span style={{ fontSize:12, fontWeight:700, color:cfg.color, background:`${cfg.color}18`, padding:"3px 10px", borderRadius:20 }}>{catProjects.length}</span>
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+                  <div style={{ background:"var(--surface2)", borderRadius:8, padding:"8px 10px" }}>
+                    <div style={{ fontSize:9, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginBottom:3 }}>Billed</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"var(--blue)" }}>{fmt(billed)}</div>
+                  </div>
+                  <div style={{ background:"var(--surface2)", borderRadius:8, padding:"8px 10px" }}>
+                    <div style={{ fontSize:9, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginBottom:3 }}>Received</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"var(--green)" }}>{fmt(received)}</div>
+                  </div>
+                  <div style={{ background:"var(--surface2)", borderRadius:8, padding:"8px 10px" }}>
+                    <div style={{ fontSize:9, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginBottom:3 }}>Pending</div>
+                    <div style={{ fontSize:13, fontWeight:700, color: pending>0?"var(--red)":"var(--muted)" }}>{pending>0?fmt(pending):"—"}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {/* Grand total card */}
+        <div style={{ background:"var(--surface2)", border:"1px solid var(--border2)", borderRadius:12, padding:"14px 16px" }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Grand Total — {projects.length} projects</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+            <div><div style={{ fontSize:9, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Billed</div><div style={{ fontSize:13, fontWeight:800, color:"var(--blue)" }}>{fmt(totalBilled)}</div></div>
+            <div><div style={{ fontSize:9, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Received</div><div style={{ fontSize:13, fontWeight:800, color:"var(--green)" }}>{fmt(totalReceived)}</div></div>
+            <div><div style={{ fontSize:9, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Pending</div><div style={{ fontSize:13, fontWeight:800, color:"var(--red)" }}>{fmt(totalPending)}</div></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -216,8 +266,9 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
         <button className="btn-primary" onClick={openAdd}>+ New Project</button>
       </div>
 
-      {/* Projects table */}
-      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:14, overflow:"hidden" }}>
+      {/* Projects table — desktop */}
+      <div className="table-desktop" style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:14, overflow:"hidden" }}>
+        <div className="table-scroll">
         <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
             <tr>
@@ -243,7 +294,6 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
               const pending = billed - recvd;
               const color   = p.color || "#c97d2a";
               const svcCfg  = SVC_COLORS[p.service] || { color:"#8a8a72", bg:"rgba(138,138,114,0.1)" };
-
               return (
                 <tr key={p.id}
                   onClick={() => onSelectProject(p.id)}
@@ -301,6 +351,69 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
             </tfoot>
           )}
         </table>
+        </div>
+      </div>
+
+      {/* Projects — mobile cards */}
+      <div className="mobile-cards">
+        {sorted.length === 0 && (
+          <div style={{ textAlign:"center", padding:"40px 0", color:"var(--muted)", fontSize:13 }}>
+            No projects yet. <button className="btn-primary" style={{ marginLeft:8 }} onClick={openAdd}>+ Add one</button>
+          </div>
+        )}
+        {sorted.map((p, i) => {
+          const pays    = p.payments || [];
+          const billed  = pays.reduce((s,x)=>s+(Number(x.amount_due)||0),0);
+          const recvd   = pays.reduce((s,x)=>s+(Number(x.amount_received)||0),0);
+          const pending = billed - recvd;
+          const color   = p.color || "#c97d2a";
+          const svcCfg  = SVC_COLORS[p.service] || { color:"#8a8a72", bg:"rgba(138,138,114,0.1)" };
+          return (
+            <div key={p.id}
+              onClick={() => onSelectProject(p.id)}
+              style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12, padding:"14px 16px", cursor:"pointer", position:"relative", overflow:"hidden" }}
+            >
+              <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:color }} />
+              <div style={{ paddingLeft:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+                  <div style={{ flex:1, minWidth:0, paddingRight:8 }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:"var(--text)", letterSpacing:"-0.2px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.name}</div>
+                    {p.client_name && <div style={{ fontSize:11, color:"var(--muted)", marginTop:2 }}>{p.client_name}</div>}
+                  </div>
+                  <div style={{ display:"flex", gap:5, flexShrink:0 }} onClick={e=>e.stopPropagation()}>
+                    <button className="btn-edit" onClick={e=>openEdit(e,p)}>Edit</button>
+                    <button className="btn-danger" style={{ padding:"4px 8px" }} onClick={e=>deleteProject(e,p.id)}>✕</button>
+                  </div>
+                </div>
+                {p.service && <div style={{ marginBottom:10 }}><span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20, background:svcCfg.bg, color:svcCfg.color }}>{p.service}</span></div>}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+                  <div style={{ background:"var(--surface2)", borderRadius:8, padding:"8px 10px" }}>
+                    <div style={{ fontSize:9, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginBottom:3 }}>Billed</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"var(--blue)" }}>{fmt(billed)}</div>
+                  </div>
+                  <div style={{ background:"var(--surface2)", borderRadius:8, padding:"8px 10px" }}>
+                    <div style={{ fontSize:9, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginBottom:3 }}>Received</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"var(--green)" }}>{fmt(recvd)}</div>
+                  </div>
+                  <div style={{ background:"var(--surface2)", borderRadius:8, padding:"8px 10px" }}>
+                    <div style={{ fontSize:9, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginBottom:3 }}>Pending</div>
+                    <div style={{ fontSize:13, fontWeight:700, color: pending>0?"var(--red)":pending<0?"var(--green)":"var(--muted)" }}>{pending>0?fmt(pending):pending<0?`+${fmt(Math.abs(pending))}`:"—"}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {sorted.length > 0 && (
+          <div style={{ background:"var(--surface2)", border:"1px solid var(--border2)", borderRadius:12, padding:"14px 16px" }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Total — {sorted.length} projects</div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+              <div><div style={{ fontSize:9, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Billed</div><div style={{ fontSize:13, fontWeight:800, color:"var(--blue)" }}>{fmt(catBilled)}</div></div>
+              <div><div style={{ fontSize:9, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Received</div><div style={{ fontSize:13, fontWeight:800, color:"var(--green)" }}>{fmt(catReceived)}</div></div>
+              <div><div style={{ fontSize:9, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Pending</div><div style={{ fontSize:13, fontWeight:800, color:"var(--red)" }}>{fmt(catPending)}</div></div>
+            </div>
+          </div>
+        )}
       </div>
       <div style={{ marginTop:10, fontSize:12, color:"var(--muted)", textAlign:"right" }}>{sorted.length} of {categoryProjects.length} projects</div>
     </div>

@@ -318,3 +318,71 @@ body {
 }
 .color-swatch:hover { transform: scale(1.15); }
 .color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text); }
+
+/* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Header */
+  .header { padding: 0 14px; height: auto; min-height: 52px; flex-wrap: wrap; gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+  .header-brand { gap: 8px; }
+  .header-title { font-size: 12px; }
+  .header-sub { font-size: 9px; }
+  .header-logo { width: 26px; height: 26px; font-size: 10px; }
+  .header-actions { gap: 6px; flex-wrap: wrap; }
+  .user-tab { padding: 5px 10px; font-size: 11px; }
+  .btn-primary { padding: 7px 12px; font-size: 12px; }
+
+  /* Page */
+  .page { padding: 16px 14px; }
+
+  /* Stats */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+  .stat-card { padding: 14px 14px; }
+  .stat-value { font-size: 20px; letter-spacing: -0.8px; }
+  .stat-label { font-size: 9px; margin-bottom: 6px; }
+
+  /* Tables → Cards for category view */
+  .table-desktop { display: none !important; }
+  .mobile-cards { display: flex !important; flex-direction: column; gap: 8px; }
+
+  /* Kanban - single column scroll on mobile */
+  .kanban { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Finance cards */
+  .finance-cards { grid-template-columns: 1fr; gap: 8px; margin-bottom: 16px; }
+  .finance-card .fc-value { font-size: 18px; }
+
+  /* Payment row cards */
+  .pay-row-desktop { display: none !important; }
+  .pay-row-mobile { display: flex !important; }
+
+  /* Tabs */
+  .proj-tabs button { padding: 8px 12px !important; font-size: 12px !important; }
+
+  /* Modal */
+  .modal { padding: 20px 16px; margin: 0; border-radius: 16px 16px 0 0; max-height: 85vh; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal-lg { max-width: 100%; }
+  .field-row { grid-template-columns: 1fr; gap: 0; }
+  .modal-title { font-size: 14px; margin-bottom: 16px; }
+
+  /* Search toolbar */
+  .toolbar { gap: 6px; }
+  .search-input { min-width: 0; font-size: 13px; }
+
+  /* Back btn */
+  .back-btn { padding: 5px 8px; }
+}
+
+/* Mobile card components (hidden by default, shown on mobile) */
+.mobile-cards { display: none; }
+.pay-row-mobile { display: none; }
+
+/* Scrollable table wrapper */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll table { min-width: 540px; }
+
+@media (max-width: 480px) {
+  .stat-value { font-size: 17px; }
+  .stats-grid { gap: 6px; }
+  .stat-card { padding: 12px 12px; }
+}
