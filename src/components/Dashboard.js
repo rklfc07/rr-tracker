@@ -30,9 +30,9 @@ function fmt(n) {
   return "₹" + Number(n).toLocaleString("en-IN");
 }
 
-export default function Dashboard({ projects, onSelectProject, onRefresh, onLogout }) {
-  const [view, setView] = useState("categories"); // "categories" | "projects"
-  const [activeCategory, setActiveCategory] = useState(null);
+export default function Dashboard({ projects, onSelectProject, onRefresh, onLogout, initialView, initialCategory, onViewChange }) {
+  const [view, setView] = useState(initialView || "categories"); // "categories" | "projects"
+  const [activeCategory, setActiveCategory] = useState(initialCategory || null);
   const [userFilter, setUserFilter] = useState("All");
   const [searchText, setSearchText] = useState("");
   const [modalMode, setModalMode] = useState(null);
@@ -144,7 +144,7 @@ export default function Dashboard({ projects, onSelectProject, onRefresh, onLogo
               const cfg = CAT_COLORS[cat] || { color:"#8a8a72" };
               return (
                 <tr key={cat}
-                  onClick={() => { setActiveCategory(cat); setView("projects"); setSearchText(""); }}
+                  onClick={() => { setActiveCategory(cat); setView("projects"); setSearchText(""); if(onViewChange) onViewChange(cat, "projects"); }}
                   style={{ borderTop:"1px solid var(--border)", cursor:"pointer", transition:"background 0.1s" }}
                   onMouseEnter={e => e.currentTarget.style.background="var(--surface2)"}
                   onMouseLeave={e => e.currentTarget.style.background="transparent"}
@@ -195,7 +195,7 @@ export default function Dashboard({ projects, onSelectProject, onRefresh, onLogo
           const cfg = CAT_COLORS[cat] || { color:"#8a8a72" };
           return (
             <div key={cat}
-              onClick={() => { setActiveCategory(cat); setView("projects"); setSearchText(""); }}
+              onClick={() => { setActiveCategory(cat); setView("projects"); setSearchText(""); if(onViewChange) onViewChange(cat, "projects"); }}
               style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12, padding:"14px 16px", cursor:"pointer", position:"relative", overflow:"hidden" }}
             >
               <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:cfg.color, borderRadius:"3px 0 0 3px" }} />
@@ -424,7 +424,7 @@ export default function Dashboard({ projects, onSelectProject, onRefresh, onLogo
       <div className="header">
         <div className="header-brand">
           {view === "projects" && (
-            <button className="back-btn" onClick={() => { setView("categories"); setActiveCategory(null); }}>←</button>
+            <button className="back-btn" onClick={() => { setView("categories"); setActiveCategory(null); if(onViewChange) onViewChange(null, "categories"); }}>←</button>
           )}
           <div className="header-logo">R²</div>
           <div>
