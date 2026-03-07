@@ -13,21 +13,21 @@ export default function App() {
   useEffect(() => {
     fetchProjects();
 
+    const debounced = () => {
+      if (fetchTimer.current) clearTimeout(fetchTimer.current);
+      fetchTimer.current = setTimeout(() => fetchProjects(), 400);
+    };
+
     const channel = supabase
       .channel("realtime-projects")
-      .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, debouncedFetch)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, debouncedFetch)
-      .on("postgres_changes", { event: "*", schema: "public", table: "notes" }, debouncedFetch)
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, debouncedFetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, debounced)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, debounced)
+      .on("postgres_changes", { event: "*", schema: "public", table: "notes" }, debounced)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, debounced)
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, []);
-
-  const debouncedFetch = () => {
-    if (fetchTimer.current) clearTimeout(fetchTimer.current);
-    fetchTimer.current = setTimeout(() => fetchProjects(), 400);
-  };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProjects = async () => {
     const { data } = await supabase
