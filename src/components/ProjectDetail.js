@@ -27,7 +27,7 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
   const [saving, setSaving] = useState(false);
 
   const now = new Date();
-  const [taskForm, setTaskForm] = useState({ title: "", assignee: "Rakesh", status: "Todo", priority: "Medium", due: "", notes: "" });
+  const [taskForm, setTaskForm] = useState({ title: "", assignee: "Rakesh", status: "Todo", priority: "Medium", due: "", url: "", notes: "" });
   const [noteForm, setNoteForm] = useState({ author: "Rakesh", text: "" });
   const [payForm,  setPayForm]  = useState({ month: MONTHS[now.getMonth()], year: String(now.getFullYear()), amount_due: "", amount_received: "", notes: "" });
 
@@ -46,7 +46,7 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
   const totalPending  = totalDue - totalReceived;
   const color = project.color || "#6e5de6";
 
-  const openAddTask  = (status) => { setTaskForm({ title: "", assignee: "Rakesh", status, priority: "Medium", due: "", notes: "" }); setTaskModal({ mode: "add" }); };
+  const openAddTask  = (status) => { setTaskForm({ title: "", assignee: "Rakesh", status, priority: "Medium", due: "", url: "", notes: "" }); setTaskModal({ mode: "add" }); };
   const openEditTask = (task)   => { setTaskForm({ ...task }); setTaskModal({ mode: "edit", taskId: task.id }); };
   const saveTask = async () => {
     if (!taskForm.title.trim()) return;
@@ -152,7 +152,8 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
                         <span className="assignee-chip">{task.assignee}</span>
                         <span className="priority-chip" style={{ color: PRIORITY_CFG[task.priority] }}>{task.priority}</span>
                       </div>
-                      {task.due   && <div className="task-due">📅 {task.due}</div>}
+                      {task.due && <div className="task-due">📅 {task.due}</div>}
+                      {task.url && <div className="task-url">🔗 <a href={task.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>{task.url.length > 40 ? task.url.slice(0,40)+"…" : task.url}</a></div>}
                       {task.notes && <div className="task-notes">{task.notes}</div>}
                       <div style={{ marginTop: 10 }}>
                         <button className="btn-danger" onClick={e => { e.stopPropagation(); deleteTask(task.id); }}>Delete</button>
@@ -286,6 +287,7 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
               </div>
               <div className="field"><label>Due Date</label><input type="date" value={taskForm.due} onChange={e => setTaskForm(f => ({ ...f, due: e.target.value }))} /></div>
             </div>
+            <div className="field"><label>Reference URL (optional)</label><input type="url" value={taskForm.url} onChange={e => setTaskForm(f => ({ ...f, url: e.target.value }))} placeholder="https://docs.google.com/…" /></div>
             <div className="field"><label>Notes</label><textarea value={taskForm.notes} onChange={e => setTaskForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any details…" /></div>
             <div className="modal-footer">
               <button className="btn-primary" onClick={saveTask} disabled={saving}>{saving ? "Saving…" : taskModal.mode === "add" ? "Add Task" : "Save"}</button>
