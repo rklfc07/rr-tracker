@@ -57,7 +57,6 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
   const [sortBy,        setSortBy]        = useState("name"); // name | pending | progress | status
   const [sortDir,       setSortDir]       = useState("asc");
 
-  const allTasks = projects.flatMap(p => p.tasks || []);
   const totalPending = projects.reduce((s, p) => {
     const payments = p.payments || [];
     const due = payments.reduce((a, pay) => a + (Number(pay.amount_due) || 0), 0);
