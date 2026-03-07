@@ -17,6 +17,7 @@ export default function App() {
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, fetchProjects)
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, fetchProjects)
       .on("postgres_changes", { event: "*", schema: "public", table: "notes" }, fetchProjects)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, fetchProjects)
       .subscribe();
 
     return () => supabase.removeChannel(channel);
@@ -25,7 +26,7 @@ export default function App() {
   const fetchProjects = async () => {
     const { data: projectsData } = await supabase
       .from("projects")
-      .select(`*, tasks(*), notes(*)`)
+      .select(`*, tasks(*), notes(*), payments(*)`)
       .order("created_at", { ascending: true });
     if (projectsData) setProjects(projectsData);
     setLoading(false);
