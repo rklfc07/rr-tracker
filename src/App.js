@@ -27,19 +27,6 @@ export default function App() {
   const [activeCategory, setActiveCategoryRaw] = useState(() => readNav().activeCategory);
   const [dashView,       setDashViewRaw]        = useState(() => readNav().dashView || "categories");
 
-  // Wrappers that keep sessionStorage in sync
-  const setActiveProject = (id) => {
-    setActiveProjectRaw(id);
-    writeNav({ activeProject: id, activeCategory, dashView });
-  };
-  const setActiveCategory = (cat) => {
-    setActiveCategoryRaw(cat);
-    writeNav({ activeProject, activeCategory: cat, dashView });
-  };
-  const setDashView = (v) => {
-    setDashViewRaw(v);
-    writeNav({ activeProject, activeCategory, dashView: v });
-  };
   // Combined setter used by Dashboard when changing category+view together
   const navToCategory = (cat, view) => {
     setActiveCategoryRaw(cat);
