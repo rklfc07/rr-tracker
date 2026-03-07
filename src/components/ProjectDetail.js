@@ -30,7 +30,6 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
 
   const tasks = (project.tasks || []).filter(t => filterUser === "All" || t.assignee === filterUser);
   const notes = [...(project.notes || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  const profit = (Number(project.received) || 0) - (Number(project.budget) || 0);
   const pending = (Number(project.budget) || 0) - (Number(project.received) || 0);
 
   const openAdd = (status) => {
