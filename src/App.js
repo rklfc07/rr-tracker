@@ -2,15 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "./lib/supabase";
 import Dashboard from "./components/Dashboard";
 import ProjectDetail from "./components/ProjectDetail";
+import Login from "./components/Login";
 import "./App.css";
 
 export default function App() {
-  const [projects, setProjects] = useState([]);
+  const [authed, setAuthed]             = useState(() => localStorage.getItem("rr_auth") === "true");
+  const [projects, setProjects]         = useState([]);
   const [activeProject, setActiveProject] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]           = useState(true);
   const fetchTimer = useRef(null);
 
   useEffect(() => {
+    if (!authed) return;
+
     fetchProjects();
 
     const debounced = () => {
@@ -27,7 +31,7 @@ export default function App() {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProjects = async () => {
     const { data } = await supabase
@@ -36,7 +40,6 @@ export default function App() {
       .order("created_at", { ascending: true });
 
     if (data) {
-      // Deduplicate by id just in case
       const seen = new Set();
       const unique = data.filter(p => {
         if (seen.has(p.id)) return false;
@@ -47,6 +50,17 @@ export default function App() {
     }
     setLoading(false);
   };
+
+  const handleLogin  = () => setAuthed(true);
+  const handleLogout = () => {
+    localStorage.removeItem("rr_auth");
+    setAuthed(false);
+    setProjects([]);
+    setActiveProject(null);
+    setLoading(true);
+  };
+
+  if (!authed) return <Login onLogin={handleLogin} />;
 
   if (loading) return (
     <div className="loader-wrap">
@@ -62,11 +76,13 @@ export default function App() {
             project={projects.find(p => p.id === activeProject)}
             onBack={() => setActiveProject(null)}
             onRefresh={fetchProjects}
+            onLogout={handleLogout}
           />
         : <Dashboard
             projects={projects}
             onSelectProject={setActiveProject}
             onRefresh={fetchProjects}
+            onLogout={handleLogout}
           />
       }
     </div>

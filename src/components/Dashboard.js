@@ -30,7 +30,7 @@ function fmt(n) {
   return "₹" + Number(n).toLocaleString("en-IN");
 }
 
-export default function Dashboard({ projects, onSelectProject, onRefresh }) {
+export default function Dashboard({ projects, onSelectProject, onRefresh, onLogout }) {
   const [view, setView] = useState("categories"); // "categories" | "projects"
   const [activeCategory, setActiveCategory] = useState(null);
   const [userFilter, setUserFilter] = useState("All");
@@ -442,6 +442,17 @@ export default function Dashboard({ projects, onSelectProject, onRefresh }) {
               <button key={u} className={`user-tab ${userFilter===u?"active":""}`} onClick={() => setUserFilter(u)}>{u}</button>
             ))}
           </div>
+          <button
+            onClick={onLogout}
+            title="Sign out"
+            style={{
+              background: "none", border: "1px solid var(--border)", borderRadius: 8,
+              color: "var(--muted)", cursor: "pointer", fontSize: 16, padding: "5px 9px",
+              lineHeight: 1, transition: "all 0.15s", fontFamily: "sans-serif",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(192,57,43,0.3)"; e.currentTarget.style.color = "var(--red)"; e.currentTarget.style.background = "var(--red-dim)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.background = "none"; }}
+          >⎋</button>
         </div>
       </div>
 

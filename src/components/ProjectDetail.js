@@ -18,7 +18,7 @@ function fmt(n) {
   return "₹" + Number(n).toLocaleString("en-IN");
 }
 
-export default function ProjectDetail({ project, onBack, onRefresh }) {
+export default function ProjectDetail({ project, onBack, onRefresh, onLogout }) {
   const [activeTab, setActiveTab] = useState("tasks");
   const [filterUser, setFilterUser] = useState("All");
   const [taskModal, setTaskModal] = useState(null);
@@ -113,6 +113,17 @@ export default function ProjectDetail({ project, onBack, onRefresh }) {
           )}
           {activeTab === "payments" && <button className="btn-primary" onClick={openAddPay}>+ Payment</button>}
           {activeTab === "notes" && <button className="btn-primary" onClick={() => setNoteModal(true)}>+ Note</button>}
+          <button
+            onClick={onLogout}
+            title="Sign out"
+            style={{
+              background: "none", border: "1px solid var(--border)", borderRadius: 8,
+              color: "var(--muted)", cursor: "pointer", fontSize: 16, padding: "5px 9px",
+              lineHeight: 1, transition: "all 0.15s", fontFamily: "sans-serif",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(192,57,43,0.3)"; e.currentTarget.style.color = "var(--red)"; e.currentTarget.style.background = "var(--red-dim)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.background = "none"; }}
+          >⎋</button>
         </div>
       </div>
 
