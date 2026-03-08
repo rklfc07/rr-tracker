@@ -5,7 +5,7 @@ import ProjectDetail from "./components/ProjectDetail";
 import Login from "./components/Login";
 import "./App.css";
 
-// Persist nav state across refreshes using sessionStorage
+// ── sessionStorage helpers (survive refresh) ──────────────────
 function readNav() {
   try {
     const raw = sessionStorage.getItem("rr_nav");
@@ -16,34 +16,91 @@ function writeNav(state) {
   try { sessionStorage.setItem("rr_nav", JSON.stringify(state)); } catch {}
 }
 
+// ── Read initial state from URL hash so refresh works ─────────
+// URL scheme:
+//   /                       → screen 1 (categories)
+//   #category=Google+Ads    → screen 2 (projects list)
+//   #project=<uuid>         → screen 3 (project detail)
+function readHash() {
+  const hash = window.location.hash.slice(1); // strip #
+  const params = new URLSearchParams(hash);
+  return {
+    activeProject:  params.get("project")  || null,
+    activeCategory: params.get("category") || null,
+    dashView:       params.get("category") ? "projects" : "categories",
+  };
+}
+function writeHash(state) {
+  const params = new URLSearchParams();
+  if (state.activeProject)  params.set("project",  state.activeProject);
+  else if (state.activeCategory) params.set("category", state.activeCategory);
+  const hash = params.toString();
+  // Use pushState so browser back/forward works
+  window.history.pushState(state, "", hash ? `#${hash}` : window.location.pathname);
+}
+function replaceHash(state) {
+  const params = new URLSearchParams();
+  if (state.activeProject)  params.set("project",  state.activeProject);
+  else if (state.activeCategory) params.set("category", state.activeCategory);
+  const hash = params.toString();
+  window.history.replaceState(state, "", hash ? `#${hash}` : window.location.pathname);
+}
+
 export default function App() {
-  const [authed,  setAuthed]  = useState(() => localStorage.getItem("rr_auth") === "true");
+  const [authed,   setAuthed]   = useState(() => localStorage.getItem("rr_auth") === "true");
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const fetchTimer = useRef(null);
 
-  // Navigation state — restored from sessionStorage on refresh
-  const [activeProject,  setActiveProjectRaw]  = useState(() => readNav().activeProject);
-  const [activeCategory, setActiveCategoryRaw] = useState(() => readNav().activeCategory);
-  const [dashView,       setDashViewRaw]        = useState(() => readNav().dashView || "categories");
+  // Boot from URL hash (handles refresh + direct links), fall back to sessionStorage
+  const getInitial = () => {
+    const fromHash = readHash();
+    if (fromHash.activeProject || fromHash.activeCategory) return fromHash;
+    return readNav();
+  };
+  const initial = getInitial();
 
-  // Combined setter used by Dashboard when changing category+view together
-  const navToCategory = (cat, view) => {
-    setActiveCategoryRaw(cat);
-    setDashViewRaw(view);
-    writeNav({ activeProject, activeCategory: cat, dashView: view });
-  };
-  const navToProject = (id) => {
-    setActiveProjectRaw(id);
-    writeNav({ activeProject: id, activeCategory, dashView });
-  };
-  // Back from project → return to category view (screen 2), not screen 1
-  const backFromProject = () => {
-    setActiveProjectRaw(null);
-    // Keep activeCategory and dashView as-is so Dashboard restores screen 2
-    writeNav({ activeProject: null, activeCategory, dashView });
+  const [activeProject,  setActiveProjectRaw]  = useState(initial.activeProject);
+  const [activeCategory, setActiveCategoryRaw] = useState(initial.activeCategory);
+  const [dashView,       setDashViewRaw]        = useState(initial.dashView || "categories");
+
+  // ── Sync state to both URL history and sessionStorage ────────
+  const applyNav = (state, push = true) => {
+    const { activeProject: ap, activeCategory: ac, dashView: dv } = state;
+    setActiveProjectRaw(ap);
+    setActiveCategoryRaw(ac);
+    setDashViewRaw(dv);
+    writeNav(state);
+    if (push) writeHash(state);
+    else replaceHash(state);
   };
 
+  // ── Navigation helpers ────────────────────────────────────────
+  const navToCategory = (cat, view) => applyNav({ activeProject: null, activeCategory: cat, dashView: view });
+  const navToProject  = (id)        => applyNav({ activeProject: id,   activeCategory, dashView });
+  const backFromProject = ()        => applyNav({ activeProject: null, activeCategory, dashView }, false);
+
+  // ── Handle browser back/forward button ───────────────────────
+  useEffect(() => {
+    const onPop = (e) => {
+      // e.state is the object we passed to pushState
+      const state = e.state || readHash();
+      setActiveProjectRaw(state.activeProject  || null);
+      setActiveCategoryRaw(state.activeCategory || null);
+      setDashViewRaw(state.activeCategory ? (state.dashView || "projects") : "categories");
+      writeNav(state);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── On first mount, write current state into history so the
+  //    very first screen is also in the history stack ───────────
+  useEffect(() => {
+    replaceHash({ activeProject, activeCategory, dashView });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Supabase data + realtime ──────────────────────────────────
   useEffect(() => {
     if (!authed) return;
     fetchProjects();
@@ -88,6 +145,7 @@ export default function App() {
     setActiveCategoryRaw(null);
     setDashViewRaw("categories");
     setLoading(true);
+    window.history.replaceState({}, "", window.location.pathname);
   };
 
   if (!authed) return <Login onLogin={handleLogin} />;
@@ -103,7 +161,7 @@ export default function App() {
       {activeProject
         ? <ProjectDetail
             project={projects.find(p => p.id === activeProject)}
-            onBack={backFromProject}           // ← goes to screen 2, not screen 1
+            onBack={backFromProject}
             onRefresh={fetchProjects}
             onLogout={handleLogout}
           />
@@ -112,10 +170,9 @@ export default function App() {
             onSelectProject={navToProject}
             onRefresh={fetchProjects}
             onLogout={handleLogout}
-            // Pass persisted nav state down so Dashboard restores correctly
             initialView={dashView}
             initialCategory={activeCategory}
-            onViewChange={navToCategory}       // ← Dashboard calls this when switching views
+            onViewChange={navToCategory}
           />
       }
     </div>
