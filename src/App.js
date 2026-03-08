@@ -76,9 +76,9 @@ export default function App() {
   };
 
   // ── Navigation helpers ────────────────────────────────────────
-  const navToCategory = (cat, view) => applyNav({ activeProject: null, activeCategory: cat, dashView: view });
+  const navToCategory   = (cat, view) => applyNav({ activeProject: null, activeCategory: cat,  dashView: view || (cat ? "projects" : "categories") });
   const navToProject  = (id)        => applyNav({ activeProject: id,   activeCategory, dashView });
-  const backFromProject = ()        => applyNav({ activeProject: null, activeCategory, dashView }, false);
+  const backFromProject = ()          => applyNav({ activeProject: null, activeCategory, dashView });
 
   // ── Handle browser back/forward button ───────────────────────
   useEffect(() => {

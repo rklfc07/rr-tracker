@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 
 const CATEGORIES = ["SEO", "Google Ads", "SaaS Product", "Website Development", "Content Writing"];
@@ -35,6 +35,10 @@ export default function Dashboard({ projects, onSelectProject, onRefresh, onLogo
   const [activeCategory, setActiveCategory] = useState(initialCategory || null);
   const [userFilter, setUserFilter] = useState("All");
   const [searchText, setSearchText] = useState("");
+
+  // Sync when App drives nav change (e.g. browser back button)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setView(initialView || "categories"); setActiveCategory(initialCategory || null); }, [initialView, initialCategory]);
   const [modalMode, setModalMode] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -424,7 +428,7 @@ export default function Dashboard({ projects, onSelectProject, onRefresh, onLogo
       <div className="header">
         <div className="header-brand">
           {view === "projects" && (
-            <button className="back-btn" onClick={() => { setView("categories"); setActiveCategory(null); if(onViewChange) onViewChange(null, "categories"); }}>←</button>
+            <button className="back-btn" onClick={() => { window.history.back(); }}>←</button>
           )}
           <div className="header-logo">R²</div>
           <div>
